@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // For formatting dates and times
-import 'package:intl/intl.dart' as intl;
-import 'package:flutter/cupertino.dart';
 
 class ETAWidget extends StatelessWidget {
   final Map<String, dynamic> eta; // ETA in {Day, Hour, Minute, Month} format
-  final double
-      progress; // Progress from 0.0 to 1.0 (0.0 = ship just started, 1.0 = ETA reached)
 
   const ETAWidget({
     required this.eta,
-    required this.progress,
     Key? key,
   }) : super(key: key);
 
@@ -18,62 +13,37 @@ class ETAWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final etaDate = _convertToDate(eta);
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      elevation: 4,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              "Estimated Time of Arrival",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal,
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Circular Progress Bar
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  height: 120,
-                  width: 120,
-                  child: CircularProgressIndicator(
-                    value: progress,
-                    strokeWidth: 8,
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(Colors.teal.shade400),
-                    backgroundColor: Colors.teal.shade100,
-                  ),
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        margin: const EdgeInsets.symmetric(
+          vertical: 8,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        elevation: 4,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                "Estimated Time of Arrival",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.teal,
                 ),
-                Text(
-                  _formatETA(etaDate),
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.teal,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // Time Remaining Section
-            Text(
-              "Time remaining: ${_calculateTimeRemaining(etaDate)}",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.teal.shade700,
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              // ETA as a label
+              _buildETALabel(etaDate),
+              const SizedBox(height: 12),
+              // Time Remaining Section
+              _buildTimeRemaining(etaDate),
+            ],
+          ),
         ),
       ),
     );
@@ -92,10 +62,47 @@ class ETAWidget extends StatelessWidget {
     );
   }
 
+  // Builds the ETA label
+  Widget _buildETALabel(DateTime etaDate) {
+    final formattedETA = _formatETA(etaDate);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.teal.shade50,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        "ETA: $formattedETA",
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: Colors.teal.shade800,
+        ),
+      ),
+    );
+  }
+
   // Formats the ETA into a human-readable format (e.g., "21 Nov, 4:30 AM")
   String _formatETA(DateTime etaDate) {
     final DateFormat dateFormat = DateFormat('d MMM, h:mm a');
     return dateFormat.format(etaDate);
+  }
+
+  // Builds the time remaining section
+  Widget _buildTimeRemaining(DateTime etaDate) {
+    final remainingTime = _calculateTimeRemaining(etaDate);
+
+    return Text(
+      remainingTime,
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: remainingTime.contains("Already Arrived")
+            ? Colors.green.shade700
+            : Colors.teal.shade700,
+      ),
+    );
   }
 
   // Calculates the remaining time until the ETA
@@ -107,9 +114,14 @@ class ETAWidget extends StatelessWidget {
       return "Already Arrived"; // If ETA has passed
     }
 
-    final hoursLeft = difference.inHours;
+    final daysLeft = difference.inDays;
+    final hoursLeft = difference.inHours % 24;
     final minutesLeft = difference.inMinutes % 60;
 
-    return "$hoursLeft hr $minutesLeft min";
+    if (daysLeft > 0) {
+      return "$daysLeft days $hoursLeft hrs $minutesLeft min remaining";
+    } else {
+      return "$hoursLeft hrs $minutesLeft min remaining";
+    }
   }
 }

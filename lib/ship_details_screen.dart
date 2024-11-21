@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:spill_sentinel/utils.dart';
 import 'package:spill_sentinel/widgets/eta_widget.dart';
 
 class ShipDetailsScreen extends StatefulWidget {
@@ -14,44 +15,8 @@ class ShipDetailsScreen extends StatefulWidget {
 
 class _ShipDetailsScreenState extends State<ShipDetailsScreen> {
   String selectedTab = "Vessel"; // Initial tab
-  String getStatusDescription(int statusNumber) {
-    switch (statusNumber) {
-      case 0:
-        return "Underway using engine";
-      case 1:
-        return "At anchor";
-      case 2:
-        return "Not under command";
-      case 3:
-        return "Restricted maneuverability";
-      case 4:
-        return "Constrained by her draught";
-      case 5:
-        return "Moored";
-      case 6:
-        return "Aground";
-      case 7:
-        return "Engaged in fishing";
-      case 8:
-        return "Underway sailing";
-      case 9:
-        return "Reserved for future amendment of navigational status for ships carrying dangerous goods (DG), harmful substances(HS), or IMO hazard or pollutant category C, high-speed craft (HSC)";
-      case 10:
-        return "Reserved for future amendment of navigational status for ships carrying dangerous goods (DG), harmful substances (HS) or marine pollutants (MP), or IMO hazard or pollutant category A, wing in the ground (WIG)";
-      case 11:
-        return "Power-driven vessel towing astern";
-      case 12:
-        return "Power-driven vessel pushing ahead or towing alongside";
-      case 13:
-        return "Reserved for future use";
-      case 14:
-        return "AIS-SART Active (Search and Rescue Transmitter), AIS-MOB (Man Overboard), AIS-EPIRB (Emergency Position Indicating Radio Beacon)";
-      case 15:
-        return "Undefined";
-      default:
-        return "Unknown status";
-    }
-  }
+
+  // Get a descriptive status from the status number
 
   @override
   Widget build(BuildContext context) {
@@ -76,17 +41,11 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen> {
         ),
         child: Column(
           children: [
-            // Top Navigation Tabs
+            // Tab navigation
             _buildTabs(),
             const SizedBox(height: 8),
-            // Ship Details and Image Section
-            _buildShipDetailsCard(shipData),
-            // Status and Metrics Section
-            _buildStatusCard(shipData),
-            // Map Section
-            _buildMapCard(shipData),
-            // Action Buttons Section
-            _buildActionButtons(),
+            // Dynamically display content based on selected tab
+            Expanded(child: _buildTabContent(shipData)),
           ],
         ),
       ),
@@ -95,7 +54,7 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen> {
 
   /// Builds the top navigation tabs
   Widget _buildTabs() {
-    final tabs = ["Vessel", "Voyage", "Position"];
+    final tabs = ["Vessel", "Position", "Voyage"];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: tabs.map((tab) {
@@ -121,6 +80,516 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen> {
     );
   }
 
+  /// Build content based on the selected tab
+  Widget _buildTabContent(Map<String, dynamic> shipData) {
+    switch (selectedTab) {
+      case "Vessel":
+        return _buildVesselTabContent(shipData);
+      case "Voyage":
+        return _buildVoyageTabContent(shipData);
+      case "Position":
+        return _buildPositionTabContent(shipData);
+      default:
+        return Container(); // Default case to handle errors
+    }
+  }
+
+  /// Vessel information tab content
+  Widget _buildVesselTabContent(Map<String, dynamic> shipData) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildShipDetailsCard(shipData),
+          const SizedBox(height: 8),
+          _buildStatusCard(shipData),
+        ],
+      ),
+    );
+  }
+
+  /// Voyage information tab content
+  Widget _buildVoyageTabContent(Map<String, dynamic> shipData) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title
+            Text(
+              'Voyage Details',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(
+                height: 200,
+                width: double.infinity,
+                child: _buildMapCard(shipData)),
+            const SizedBox(height: 16),
+            if (shipData['ETA'] != null &&
+                shipData['ETA'] is Map<String, dynamic>)
+              ETAWidget(eta: shipData['ETA']),
+            // Card for voyage details
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Destination
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, color: Colors.teal.shade600),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Destination',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal.shade700,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            shipData['Destination'] ?? "N/A",
+                            textAlign: TextAlign.end,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // IMO Number
+                    Row(
+                      children: [
+                        Icon(Icons.numbers, color: Colors.teal.shade600),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'IMO Number',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal.shade700,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            shipData['IMO'].toString() ?? "N/A",
+                            textAlign: TextAlign.end,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Call Sign
+                    Row(
+                      children: [
+                        Icon(Icons.call, color: Colors.teal.shade600),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Call Sign',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal.shade700,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            shipData['CallSign'] ?? "N/A",
+                            textAlign: TextAlign.end,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Additional card for notes or summary (optional)
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline,
+                        color: Colors.teal.shade600, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'This section provides voyage-specific information like the destination, IMO number, call sign, and estimated time of arrival.',
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.black54),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Position information tab content
+
+  Widget _buildPositionTabContent(Map<String, dynamic> shipData) {
+    final position = shipData['Position'];
+    if (position == null) {
+      return const Center(child: Text("Position data unavailable"));
+    }
+
+    return Stack(
+      children: [
+        // Map as background
+        Positioned.fill(
+          child: _buildMapCard(shipData),
+        ),
+
+        // DraggableScrollableSheet for position metrics card
+        DraggableScrollableSheet(
+          initialChildSize: 0.3, // Start size of the drawer
+          minChildSize: 0.1, // Minimum size the drawer can shrink to
+          maxChildSize: 0.7, // Maximum size the drawer can expand to
+          builder: (BuildContext context, ScrollController scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.teal.shade600,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Stack(
+                children: [
+                  // Content of the position metrics card
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(
+                          0.85), // Slightly transparent background for the drawer
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: 30,
+                            decoration: BoxDecoration(
+                                color: Colors.teal.shade600,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(20),
+                                  topRight: Radius.circular(20),
+                                )),
+                          ),
+                          SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Position Metrics',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.teal,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+
+                                // Latitude and Longitude
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Latitude: ',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        '${position.latitude != null ? position.latitude.toStringAsFixed(4) : "-"}',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Longitude: ',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        '${position.longitude != null ? position.longitude.toStringAsFixed(4) : "-"}',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+
+                                // Course Over Ground, Position Accuracy
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Course Over Ground: ',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        '${shipData['CourseOverGround'] ?? "N/A"}',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Position Accuracy: ',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        '${shipData['PositionAccuracy'] ?? "N/A"}',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+
+                                // RAIM, Special Maneuver Indicator
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'RAIM: ',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        '${shipData['Raim'] ?? "N/A"}',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Special Maneuver Indicator: ',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        '${shipData['SpecialManeuverIndicator'] ?? "N/A"}',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+
+                                // Repeat Indicator, Communication State
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Repeat Indicator: ',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        '${shipData['RepeatIndicator'] ?? "N/A"}',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Communication State: ',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        '${shipData['CommunicationState'] ?? "N/A"}',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+
+                                // Timestamp, Time
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Timestamp: ',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        '${shipData['Timestamp'] ?? "N/A"}',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Time: ',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        '${shipData['time'] ?? "N/A"}',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Handle bar at the top of the sheet
+                  Positioned(
+                    top: 12,
+                    left: MediaQuery.of(context).size.width / 2 -
+                        20, // Center the handle
+                    child: Container(
+                      width: 40,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMapCard(Map<String, dynamic> shipData) {
+    final position = shipData['Position'];
+    return FlutterMap(
+      options: MapOptions(
+        initialCenter: position,
+        initialZoom: 10,
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        ),
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: position,
+              width: 30,
+              height: 30,
+              child: Tooltip(
+                message: '${shipData['ShipName']} (${shipData['Flag']})\n'
+                    'Speed: ${shipData['Speed']}\nHeading: ${shipData['Heading']}',
+                child: const Icon(
+                  Icons.location_on,
+                  color: Colors.red,
+                  size: 30,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   /// Builds the ship details card
   Widget _buildShipDetailsCard(Map<String, dynamic> shipData) {
     return Card(
@@ -142,31 +611,58 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        shipData['ShipName'] ?? "Unknown Ship",
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
                     Text(
-                      shipData['Flag'] ?? "Unknown",
-                      style: const TextStyle(fontSize: 16),
+                      shipData['ShipName'] ?? "Unknown Ship",
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(width: 16),
+                    Row(
+                      children: [
+                        Text('Type : ',
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.teal)),
+                        Text(
+                          shipData['Type'] != null && shipData['Type'] is int
+                              ? getTypeDescription(shipData['Type'])
+                              : "Unknown",
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ],
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                ETAWidget(eta: shipData['ETA'], progress: 0.5),
-                const SizedBox(height: 8),
-                // Additional information
-                Text('Call Sign: ${shipData['CallSign'] ?? "N/A"}'),
-                Text('IMO Number: ${shipData['IMO'] ?? "N/A"}'),
-                Text('Destination: ${shipData['Destination'] ?? "N/A"}'),
+
+                // Add Container with a table-like layout
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.teal.shade300,
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildTableRow(
+                          'Call Sign', shipData['CallSign'] ?? "N/A"),
+                      _buildTableRow(
+                          'IMO Number', shipData['IMO'].toString() ?? "N/A"),
+                      _buildTableRow(
+                          'MMSI', shipData['MMSI'].toString() ?? "N/A"),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -175,45 +671,30 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen> {
     );
   }
 
-  Widget shipEtaWidget(String atd, String eta) {
-    return Container(
-      padding: EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  /// Helper method to create table-like rows
+  Widget _buildTableRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'ATD: $atd',
-            style: TextStyle(
-              fontSize: 16.0,
-              fontWeight: FontWeight.bold,
+            label,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.teal,
             ),
           ),
-          SizedBox(height: 8.0),
           Text(
-            'ETA: $eta',
-            style: TextStyle(
-              fontSize: 16.0,
-              fontWeight: FontWeight.bold,
-            ),
+            value,
+            style: const TextStyle(fontSize: 16),
           ),
         ],
       ),
     );
   }
 
-  /// Builds the status and metrics card
   Widget _buildStatusCard(Map<String, dynamic> shipData) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -226,78 +707,70 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Status Section
             Text(
               'Status: ${shipData['Status'] != null ? getStatusDescription(int.parse(shipData['Status'])) : "Unknown"}',
               style: TextStyle(
                 color: Colors.green.shade700,
                 fontWeight: FontWeight.bold,
-                fontSize: 16,
+                fontSize: 18,
               ),
             ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Speed: ${shipData['Speed'] ?? "-"}'),
-                Text('Draught: ${shipData['Draught'] ?? "-"} m'),
-                Text('Heading: ${shipData['Heading'] ?? "-"}°'),
-              ],
+            const SizedBox(height: 16),
+            // Grid View for Speed, Draught, and Heading
+            GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 16.0,
+                mainAxisSpacing: 16.0,
+                // To make items more square-like
+              ),
+              itemCount: 3,
+              itemBuilder: (context, index) {
+                switch (index) {
+                  case 0:
+                    return _buildStatusGridItem(
+                        'Speed', shipData['Speed'] ?? '-');
+                  case 1:
+                    return _buildStatusGridItem(
+                        'Draught', '${shipData['Draught'] ?? '-'} m');
+                  case 2:
+                    return _buildStatusGridItem(
+                        'Heading', '${shipData['Heading'] ?? '-'}°');
+                  default:
+                    return Container();
+                }
+              },
             ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Length: ${shipData['Dimension']['A'] ?? "-"} m'),
-                Text('Breadth: ${shipData['Dimension']['B'] ?? "-"} m'),
-                Text('Rate of Turn: ${shipData['RateOfTurn'] ?? "-"}°/min'),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Builds the map card
-  Widget _buildMapCard(Map<String, dynamic> shipData) {
-    final position = shipData['Position'];
-    if (position == null) {
-      return const Center(child: Text("Position data unavailable"));
-    }
-
-    return Expanded(
-      child: Card(
-        margin: const EdgeInsets.all(12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        elevation: 4,
-        child: FlutterMap(
-          options: MapOptions(
-            initialCenter: position,
-            initialZoom: 10,
-          ),
-          children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            ),
-            MarkerLayer(
-              markers: [
-                Marker(
-                  point: position,
-                  width: 30,
-                  height: 30,
-                  child: Tooltip(
-                    message: '${shipData['ShipName']} (${shipData['Flag']})\n'
-                        'Speed: ${shipData['Speed']}\nHeading: ${shipData['Heading']}',
-                    child: const Icon(
-                      Icons.location_on,
-                      color: Colors.red,
-                      size: 30,
-                    ),
-                  ),
-                ),
-              ],
+            const SizedBox(height: 16),
+            // Grid View for Length, Breadth, and Rate of Turn
+            GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 16.0,
+                mainAxisSpacing: 16.0,
+                // To make items more square-like
+              ),
+              itemCount: 3,
+              itemBuilder: (context, index) {
+                switch (index) {
+                  case 0:
+                    return _buildStatusGridItem(
+                        'Length', '${shipData['Dimension']['A'] ?? '-'} m');
+                  case 1:
+                    return _buildStatusGridItem(
+                        'Breadth', '${shipData['Dimension']['B'] ?? '-'} m');
+                  case 2:
+                    return _buildStatusGridItem('Rate of Turn',
+                        '${shipData['RateOfTurn'] ?? '-'}°/min');
+                  default:
+                    return Container();
+                }
+              },
             ),
           ],
         ),
@@ -305,45 +778,40 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen> {
     );
   }
 
-  /// Builds the action buttons at the bottom
-  Widget _buildActionButtons() {
+  /// Helper widget to create grid items
+  Widget _buildStatusGridItem(String label, String value) {
     return Container(
-      padding: const EdgeInsets.all(8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      height: 200,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.teal.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.teal.shade300, width: 1),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ElevatedButton(
-            onPressed: () {
-              // Add to Fleet action
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal.shade600,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text(
-              'Add to Fleet',
-              style: TextStyle(color: Colors.white),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.teal,
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              // Vessel Details action
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal.shade800,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text(
-              'Vessel Details',
-              style: TextStyle(color: Colors.white),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
           ),
         ],
       ),
     );
   }
+
+  /// Position metrics card to display additional info
 }

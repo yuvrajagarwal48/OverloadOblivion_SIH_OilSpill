@@ -15,9 +15,11 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   late AISStreamWebsocketClient aisClient;
-  final StreamController<dynamic> aisStreamController = StreamController.broadcast();
+  final StreamController<dynamic> aisStreamController =
+      StreamController.broadcast();
 
-  final Map<int, Map<String, dynamic>> shipDataMap = {}; // Store all ship data keyed by MMSI
+  final Map<int, Map<String, dynamic>> shipDataMap =
+      {}; // Store all ship data keyed by MMSI
   List<Marker> markers = []; // Markers dynamically generated from shipDataMap
 
   @override
@@ -60,8 +62,19 @@ class _MapScreenState extends State<MapScreen> {
         'Speed': '${positionReport['Sog'] ?? "0"} kn',
         'Heading': '${positionReport['TrueHeading'] ?? "N/A"}°',
         'Status': positionReport['NavigationalStatus']?.toString() ?? "N/A",
-        'ATD': metadata['time_utc'],
+        'time': metadata['time_utc'],
         'RateOfTurn': positionReport['RateOfTurn']?.toString() ?? "N/A",
+        'CourseOverGround': positionReport['Cog']?.toString() ?? "N/A",
+        'PositionAccuracy':
+            positionReport['PositionAccuracy']?.toString() ?? "N/A",
+        'Raim': positionReport['Raim']?.toString() ?? "N/A",
+        'SpecialManeuverIndicator':
+            positionReport['SpecialManeuverIndicator']?.toString() ?? "N/A",
+        'CommunicationState':
+            positionReport['CommunicationState']?.toString() ?? "N/A",
+        'RepeatIndicator':
+            positionReport['RepeatIndicator']?.toString() ?? "N/A",
+        'Timestamp': positionReport['Timestamp']?.toString() ?? "N/A",
       };
 
       _updateMarkers();
@@ -82,13 +95,14 @@ class _MapScreenState extends State<MapScreen> {
         ...existingData,
         'MMSI': mmsi,
         'ShipName': shipName,
-        'CallSign':staticData['CallSign'] ?? "Unknown",
+        'CallSign': staticData['CallSign'] ?? "Unknown",
         'Destination': staticData['Destination'] ?? "N/A",
         'IMO': staticData['ImoNumber'] ?? "Unknown",
         'Flag': staticData['Flag'] ?? "Unknown",
         'Draught': staticData['MaximumStaticDraught']?.toString() ?? "Unknown",
         'ETA': staticData['Eta'] ?? "N/A",
         'Dimension': staticData['Dimension'] ?? {},
+        'Type': staticData['Type'] ?? "Unknown",
       };
 
       _updateMarkers();
@@ -97,27 +111,31 @@ class _MapScreenState extends State<MapScreen> {
 
   /// Updates the markers list based on the current shipDataMap
   void _updateMarkers() {
-    markers = shipDataMap.values.map((shipData) {
-      final position = shipData['Position'] as LatLng?;
-      if (position == null) return null; // Skip if position is missing
+    markers = shipDataMap.values
+        .map((shipData) {
+          final position = shipData['Position'] as LatLng?;
+          if (position == null) return null; // Skip if position is missing
 
-      return Marker(
-        width: 30.0,
-        height: 30.0,
-        point: position,
-        child: GestureDetector(
-          onTap: () => _navigateToShipDetails(shipData),
-          child: Tooltip(
-            message: 'Ship: ${shipData['ShipName'] ?? "Unknown Ship"}\nMMSI: ${shipData['MMSI']}',
-            child: const Icon(
-              Icons.directions_boat,
-              size: 30.0,
-              color: Colors.blue,
+          return Marker(
+            width: 30.0,
+            height: 30.0,
+            point: position,
+            child: GestureDetector(
+              onTap: () => _navigateToShipDetails(shipData),
+              child: Tooltip(
+                message:
+                    'Ship: ${shipData['ShipName'] ?? "Unknown Ship"}\nMMSI: ${shipData['MMSI']}',
+                child: const Icon(
+                  Icons.directions_boat,
+                  size: 30.0,
+                  color: Colors.blue,
+                ),
+              ),
             ),
-          ),
-        ),
-      );
-    }).whereType<Marker>().toList(); // Filter out null markers
+          );
+        })
+        .whereType<Marker>()
+        .toList(); // Filter out null markers
 
     setState(() {});
   }
@@ -132,7 +150,7 @@ class _MapScreenState extends State<MapScreen> {
             'ShipName': shipData['ShipName'] ?? "Unknown Ship",
             'MMSI': shipData['MMSI'],
             'Flag': shipData['Flag'] ?? "Unknown",
-            'ATD': shipData['ATD'] ?? "N/A",
+            'time': shipData['time'] ?? "N/A",
             'ETA': shipData['ETA'] ?? "N/A",
             'Status': shipData['Status'] ?? "N/A",
             'Speed': shipData['Speed'] ?? "0 kn",
@@ -144,7 +162,15 @@ class _MapScreenState extends State<MapScreen> {
             'IMO': shipData['IMO'] ?? "Unknown",
             'Destination': shipData['Destination'] ?? "N/A",
             'RateOfTurn': shipData['RateOfTurn'] ?? "N/A",
-            
+            'CourseOverGround': shipData['CourseOverGround'] ?? "N/A",
+            'PositionAccuracy': shipData['PositionAccuracy'] ?? "N/A",
+            'Raim': shipData['Raim'] ?? "N/A",
+            'SpecialManeuverIndicator':
+                shipData['SpecialManeuverIndicator'] ?? "N/A",
+            'RepeatIndicator': shipData['RepeatIndicator'] ?? "N/A",
+            'CommunicationState': shipData['CommunicationState'] ?? "N/A",
+            'Timestamp': shipData['Timestamp'] ?? "N/A",
+            'Type': shipData['Type'] ?? "Unknown",
           },
         ),
       ),
@@ -155,7 +181,8 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("AIS Ship Map"),
+        title:
+            const Text("Spill Sentinel", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.teal.shade800,
       ),
       body: FlutterMap(
