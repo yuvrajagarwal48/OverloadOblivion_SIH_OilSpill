@@ -1,37 +1,41 @@
-import 'dart:convert';
 import 'dart:async';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:spill_sentinel/secrets.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-class AISStreamWebsocketClient {
-  final String _serverUri;
-  final StreamController<dynamic> aisStreamController;
-  late WebSocketChannel channel;
+class AISApiClient {
+  final String _apiUrl;
+  final StreamController<dynamic> aisStreamController =
+      StreamController.broadcast();
+  late Timer _timer;
 
-  AISStreamWebsocketClient(this._serverUri, this.aisStreamController);
+  AISApiClient(this._apiUrl);
 
-  void connect() async {
-    channel = WebSocketChannel.connect(
-      Uri.parse(_serverUri),
-    );
-
-    await channel.ready;
-    channel.stream.listen(onMessage);
-
-    // Send the subscription message
-    channel.sink.add(jsonEncode({
-      "APIKey": Secrets.aisstreamApiKey,
-      "BoundingBoxes": [[[10, -98], [31, -81]]]
-    }));
+  void startPolling({Duration interval = const Duration(minutes: 2)}) async {
+    await _hitApi(); // Hit the API first
+    _timer = Timer.periodic(interval, (timer) async {
+      await _hitApi(); // Hit the API after every interval
+    });
   }
 
-  void onMessage(dynamic message) {
-    final decodedMessage = jsonDecode(utf8.decode(message));
-    aisStreamController.add(decodedMessage);
-    print(decodedMessage);
+  Future<void> _hitApi() async {
+    try {
+      final response = await http.get(Uri.parse(_apiUrl));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        print(response.body);
+        for (var item in data) {
+          aisStreamController.add(item); // Stream each ship's data
+        }
+      } else {
+        print("Error: ${response.statusCode} - ${response.body}");
+      }
+    } catch (e) {
+      print("Error during API request: $e");
+    }
   }
 
-  void disconnect() {
-    channel.sink.close();
+  void stopPolling() {
+    _timer.cancel();
+    aisStreamController.close();
   }
 }

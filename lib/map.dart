@@ -1,10 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:spill_sentinel/connection.dart';
-import 'package:spill_sentinel/ship_details_screen.dart';
+import 'package:spill_sentinel/secrets.dart';
+//import 'ais_api_client.dart'; // Import the AISApiClient class
+import 'ship_details_screen.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -14,98 +14,56 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  late AISStreamWebsocketClient aisClient;
-  final StreamController<dynamic> aisStreamController =
-      StreamController.broadcast();
-
-  final Map<int, Map<String, dynamic>> shipDataMap =
-      {}; // Store all ship data keyed by MMSI
+  late AISApiClient aisClient; // Use AISApiClient for data polling
+  final Map<int, Map<String, dynamic>> shipDataMap = {}; // Ship data by MMSI
   List<Marker> markers = []; // Markers dynamically generated from shipDataMap
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize and connect AIS client
-    aisClient = AISStreamWebsocketClient(
-      'wss://stream.aisstream.io/v0/stream',
-      aisStreamController,
-    );
-    aisClient.connect();
+    // Initialize AISApiClient with the API URL
+    aisClient = AISApiClient(
+        "https://api.vtexplorer.com/vesselslist?userkey=WS-62FBF91C-529F56"); // Replace with your API URL
+    aisClient.startPolling(); // Start API polling
 
-    // Listen to AIS data and process updates
-    aisStreamController.stream.listen((message) {
-      if (message['MessageType'] == 'PositionReport') {
-        _processPositionReport(message);
-      } else if (message['MessageType'] == 'ShipStaticData') {
-        _processShipStaticData(message);
-      }
+    // Listen to the AIS data stream
+    aisClient.aisStreamController.stream.listen((aisDataRaw) {
+      _processAISData(aisDataRaw['AIS']); // Process individual AIS dat ca
+      _updateMarkers();
     });
   }
 
-  /// Process PositionReport data
-  void _processPositionReport(dynamic message) {
-    final positionReport = message['Message']['PositionReport'];
-    final metadata = message['MetaData'];
-    final latitude = positionReport['Latitude'];
-    final longitude = positionReport['Longitude'];
-    final mmsi = metadata['MMSI'];
+  /// Process individual AIS data and update the shipDataMap
+  void _processAISData(Map<String, dynamic> aisData) {
+    final mmsi = aisData['MMSI'];
+    final latitude = aisData['LATITUDE'];
+    final longitude = aisData['LONGITUDE'];
 
-    if (latitude != null && longitude != null && mmsi != null) {
-      // Update or create a new entry in shipDataMap
-      final existingData = shipDataMap[mmsi] ?? {};
+    if (mmsi != null && latitude != null && longitude != null) {
+      // Update or add ship data
       shipDataMap[mmsi] = {
-        ...existingData,
         'MMSI': mmsi,
-        'ShipName': metadata['ShipName']?.trim() ?? "Unknown Ship",
+        'ShipName': aisData['NAME'] ?? "Unknown Ship",
         'Position': LatLng(latitude, longitude),
-        'Speed': '${positionReport['Sog'] ?? "0"} kn',
-        'Heading': '${positionReport['TrueHeading'] ?? "N/A"}°',
-        'Status': positionReport['NavigationalStatus']?.toString() ?? "N/A",
-        'time': metadata['time_utc'],
-        'RateOfTurn': positionReport['RateOfTurn']?.toString() ?? "N/A",
-        'CourseOverGround': positionReport['Cog']?.toString() ?? "N/A",
-        'PositionAccuracy':
-            positionReport['PositionAccuracy']?.toString() ?? "N/A",
-        'Raim': positionReport['Raim']?.toString() ?? "N/A",
-        'SpecialManeuverIndicator':
-            positionReport['SpecialManeuverIndicator']?.toString() ?? "N/A",
-        'CommunicationState':
-            positionReport['CommunicationState']?.toString() ?? "N/A",
-        'RepeatIndicator':
-            positionReport['RepeatIndicator']?.toString() ?? "N/A",
-        'Timestamp': positionReport['Timestamp']?.toString() ?? "N/A",
+        'Speed': '${aisData['SPEED'] ?? "0"} kn',
+        'Heading': '${aisData['HEADING'] ?? "N/A"}°',
+        'Status': aisData['NAVSTAT']?.toString() ?? "N/A",
+        'ETA': aisData['ETA'] ?? "N/A",
+        'Destination': aisData['DESTINATION'] ?? "N/A",
+        'Draught': aisData['DRAUGHT']?.toString() ?? "Unknown",
+        'CallSign': aisData['CALLSIGN'] ?? "Unknown",
+        'IMO': aisData['IMO'] ?? "Unknown",
+        'Timestamp': aisData['TIMESTAMP'] ?? "N/A",
+        'Zone': aisData['ZONE'] ?? "N/A",
+        'DistanceRemaining': aisData['DISTANCE_REMAINING']?.toString() ?? "N/A",
+        'ETA_Predicted': aisData['ETA_PREDICTED'] ?? "N/A",
+        'Type': aisData['TYPE'] ?? "Unknown",
+        'A': aisData['A'] ?? "Unknown",
+        'B': aisData['B'] ?? "Unknown",
+        'C': aisData['C'] ?? "Unknown",
+        'D': aisData['D'] ?? "Unknown",
       };
-
-      _updateMarkers();
-    }
-  }
-
-  /// Process ShipStaticData
-  void _processShipStaticData(dynamic message) {
-    final staticData = message['Message']['ShipStaticData'];
-    final metadata = message['MetaData'];
-    final mmsi = metadata['MMSI'];
-    final shipName = metadata['ShipName']?.trim() ?? "Unknown Ship";
-
-    if (mmsi != null) {
-      // Update or create a new entry in shipDataMap
-      final existingData = shipDataMap[mmsi] ?? {};
-      shipDataMap[mmsi] = {
-        ...existingData,
-        'MMSI': mmsi,
-        'ShipName': shipName,
-        'CallSign': staticData['CallSign'] ?? "Unknown",
-        'Destination': staticData['Destination'] ?? "N/A",
-        'IMO': staticData['ImoNumber'] ?? "Unknown",
-        'Flag': staticData['Flag'] ?? "Unknown",
-        'Draught': staticData['MaximumStaticDraught']?.toString() ?? "Unknown",
-        'ETA': staticData['Eta'] ?? "N/A",
-        'Dimension': staticData['Dimension'] ?? {},
-        'Type': staticData['Type'] ?? "Unknown",
-      };
-
-      _updateMarkers();
     }
   }
 
@@ -150,27 +108,24 @@ class _MapScreenState extends State<MapScreen> {
             'ShipName': shipData['ShipName'] ?? "Unknown Ship",
             'MMSI': shipData['MMSI'],
             'Flag': shipData['Flag'] ?? "Unknown",
-            'time': shipData['time'] ?? "N/A",
             'ETA': shipData['ETA'] ?? "N/A",
             'Status': shipData['Status'] ?? "N/A",
             'Speed': shipData['Speed'] ?? "0 kn",
             'Draught': shipData['Draught'] ?? "Unknown",
             'Heading': shipData['Heading'] ?? "N/A",
             'Position': shipData['Position'],
-            'Dimension': shipData['Dimension'] ?? {},
             'CallSign': shipData['CallSign'] ?? "Unknown",
             'IMO': shipData['IMO'] ?? "Unknown",
             'Destination': shipData['Destination'] ?? "N/A",
-            'RateOfTurn': shipData['RateOfTurn'] ?? "N/A",
-            'CourseOverGround': shipData['CourseOverGround'] ?? "N/A",
-            'PositionAccuracy': shipData['PositionAccuracy'] ?? "N/A",
-            'Raim': shipData['Raim'] ?? "N/A",
-            'SpecialManeuverIndicator':
-                shipData['SpecialManeuverIndicator'] ?? "N/A",
-            'RepeatIndicator': shipData['RepeatIndicator'] ?? "N/A",
-            'CommunicationState': shipData['CommunicationState'] ?? "N/A",
+            'DistanceRemaining': shipData['DistanceRemaining'] ?? "N/A",
+            'ETA_Predicted': shipData['ETA_Predicted'] ?? "N/A",
             'Timestamp': shipData['Timestamp'] ?? "N/A",
+            'Zone': shipData['Zone'] ?? "N/A",
             'Type': shipData['Type'] ?? "Unknown",
+            'A': shipData['A'] ?? "Unknown",
+            'B': shipData['B'] ?? "Unknown",
+            'C': shipData['C'] ?? "Unknown",
+            'D': shipData['D'] ?? "Unknown",
           },
         ),
       ),
@@ -203,7 +158,7 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
-    aisStreamController.close();
+    aisClient.stopPolling(); // Stop polling and close the stream
     super.dispose();
   }
 }

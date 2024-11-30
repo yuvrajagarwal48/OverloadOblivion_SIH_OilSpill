@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"spill-sentinel","appId":"1:443908977919:android:a2f07f01bfb92a849908ca","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"spill-sentinel","configurations":{"android":"1:443908977919:android:a2f07f01bfb92a849908ca","ios":"1:443908977919:ios:2a271d849e6b620d9908ca"}}}}}}

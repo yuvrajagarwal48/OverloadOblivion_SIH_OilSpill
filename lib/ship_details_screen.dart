@@ -760,10 +760,10 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen> {
                 switch (index) {
                   case 0:
                     return _buildStatusGridItem(
-                        'Length', '${shipData['Dimension']['A'] ?? '-'} m');
+                        'Length', '${shipData['A'] ?? '-'} m');
                   case 1:
                     return _buildStatusGridItem(
-                        'Breadth', '${shipData['Dimension']['B'] ?? '-'} m');
+                        'Breadth', '${shipData['B'] ?? '-'} m');
                   case 2:
                     return _buildStatusGridItem('Rate of Turn',
                         '${shipData['RateOfTurn'] ?? '-'}°/min');

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "443908977919",
+    "project_id": "spill-sentinel",
+    "storage_bucket": "spill-sentinel.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:443908977919:android:a2f07f01bfb92a849908ca",
+        "android_client_info": {
+          "package_name": "com.example.spill_sentinel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbEkfK09McDjITWaEsk8qyONbIDcNYa3E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
