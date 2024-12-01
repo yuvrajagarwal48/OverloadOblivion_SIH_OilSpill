@@ -5,11 +5,12 @@ class AppTheme {
   static final appTheme = ThemeData(
     colorSchemeSeed: Pallete.primaryColor, // Uses primary color for theme
     scaffoldBackgroundColor: Pallete.backgroundColor, // Dark background color
-    fontFamily: 'Nunito', // Updated to use Nunito
+    fontFamily: 'Poppins', // Updated to use Nunito
     useMaterial3: true, // To align with Material 3 design
     datePickerTheme: DatePickerThemeData(
       headerForegroundColor: Pallete.primaryColor, // Primary color for header
-      backgroundColor: Pallete.backgroundColor, // Dark background for date picker
+      backgroundColor:
+          Pallete.backgroundColor, // Dark background for date picker
     ),
     appBarTheme: AppBarTheme(
       centerTitle: true,
@@ -29,11 +30,13 @@ class AppTheme {
       borderRadius: BorderRadius.circular(30), // Rounded to match button style
     ),
     focusedBorder: OutlineInputBorder(
-      borderSide: BorderSide(color: Colors.white, width: 1.5), // White border on focus
+      borderSide:
+          BorderSide(color: Colors.white, width: 1.5), // White border on focus
       borderRadius: BorderRadius.circular(30),
     ),
     enabledBorder: OutlineInputBorder(
-      borderSide: BorderSide(color: Pallete.primaryColor, width: 1.5), // Primary color border
+      borderSide: BorderSide(
+          color: Pallete.primaryColor, width: 1.5), // Primary color border
       borderRadius: BorderRadius.circular(30),
     ),
   );

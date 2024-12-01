@@ -19,12 +19,14 @@ import 'package:spill_sentinel/features/auth/domain/usecases/user_login.dart';
 import 'package:spill_sentinel/features/auth/domain/usecases/user_signup.dart';
 import 'package:spill_sentinel/features/auth/domain/usecases/verify_user_email.dart';
 import 'package:spill_sentinel/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:spill_sentinel/services/notification_service.dart';
 
 final serviceLocator = GetIt.instance;
 Future<void> initDependencies() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await NotificationService.initialize();
   _initAuth();
 
 

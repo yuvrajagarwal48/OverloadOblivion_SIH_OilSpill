@@ -24,7 +24,7 @@ class _MapScreenState extends State<MapScreen> {
 
     // Initialize AISApiClient with the API URL
     aisClient = AISApiClient(
-        "https://api.vtexplorer.com/vesselslist?userkey=WS-62FBF91C-529F56"); // Replace with your API URL
+        "https://api.vtexplorer.com/vesselslist?userkey=${Secrets.aisstreamApiKey}"); // Replace with your API URL
     aisClient.startPolling(); // Start API polling
 
     // Listen to the AIS data stream

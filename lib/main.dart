@@ -9,10 +9,12 @@ import 'package:spill_sentinel/features/auth/presentation/pages/landing_page.dar
 import 'package:spill_sentinel/features/auth/presentation/pages/verification_page.dart';
 import 'package:spill_sentinel/init_dependencies.dart';
 import 'package:spill_sentinel/map.dart';
+import 'package:spill_sentinel/services/notification_service.dart';
 
 /// The main entry point of the Aparna Education application.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await initDependencies();
 
   runApp(
@@ -61,6 +63,7 @@ class _AppInitializerState extends State<AppInitializer> {
     super.initState();
     // Dispatch AuthIsUserLoggedIn event once when the app initializes
     context.read<AuthBloc>().add(AuthIsUserLoggedIn());
+    NotificationService.showNotification(context);
   }
 
   @override

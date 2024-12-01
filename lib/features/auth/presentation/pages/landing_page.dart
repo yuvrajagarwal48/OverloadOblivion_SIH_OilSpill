@@ -5,7 +5,6 @@ import 'package:spill_sentinel/features/auth/presentation/pages/login_page.dart'
 import 'package:spill_sentinel/features/auth/presentation/pages/signup_page.dart';
 import 'package:spill_sentinel/features/auth/presentation/widgets/auth_button.dart';
 
-
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
 
@@ -57,22 +56,27 @@ class _LandingPageState extends State<LandingPage> {
                           color: Pallete.primaryColor,
                         ),
                       ),
-                      const SizedBox(height: 8), // Add spacing between text elements
+                      const SizedBox(
+                          height: 8), // Add spacing between text elements
                       Text(
-                        "Teaching has never been any easier!",
+                        "The best place to manage oil spills",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          color: Pallete.whiteColor, // Use white for better contrast
+                          color: Pallete
+                              .whiteColor, // Use white for better contrast
                         ),
                       ),
                     ],
                   ),
-                  Hero(
-                    tag: 'illustration',
-                    child: Image(
-                      image: AssetImage("assets/images/Illustration.png"),
-                      fit: BoxFit.fitWidth,
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: const Hero(
+                      tag: 'illustration',
+                      child: Image(
+                        image: AssetImage("assets/images/Illustration.png"),
+                        fit: BoxFit.fitWidth,
+                      ),
                     ),
                   ),
                   // Auth Buttons
