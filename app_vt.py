@@ -242,6 +242,7 @@ dotenv.load_dotenv()
 
 # Import the AIS data processor
 from scripts.live_ais_vt import AISDataProcessor
+from scripts import notification
 
 # Import your anomaly detection modules
 from scripts import anomaly_detection
@@ -328,6 +329,15 @@ class AISAnomalyDetectionServer:
                         # Combine results
                         anomaly_result.update(oil_prob)
 
+                        #Send notification if anomaly is detected
+                        if(anomaly_result['anomaly']):
+                            tokens=notification.get_tokens_from_firestore()
+                            if tokens:
+                                notification.send_push_notification(tokens, 'Anomaly Detected', f'Anomaly found for ship of MMSI:{ship_data["MMSI"]} Name:{ship_data["NAME"]}at latitude: {anomaly_df["LAT_mean"].loc[0]} and longitude:{anomaly_df["LON_mean"].loc[0]}')
+                                print("Notifications sent")
+                            else:
+                                print('No tokens found in Firestore.')
+                                
                         # Broadcast results to all connected clients
                         output = {
                             "ais_data": {k: self.ais_processor.convert_to_json_serializable(v) for k, v in ship_data.items()},
