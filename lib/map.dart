@@ -1,9 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:spill_sentinel/connection.dart';
-import 'package:spill_sentinel/secrets.dart';
-//import 'ais_api_client.dart'; // Import the AISApiClient class
+import 'package:spill_sentinel/services/connection2.dart';
+import 'package:spill_sentinel/services/notification_service.dart';
+//import 'ais_websocket_client.dart'; // Your WebSocket client class
 import 'ship_details_screen.dart';
 
 class MapScreen extends StatefulWidget {
@@ -14,34 +16,44 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  late AISApiClient aisClient; // Use AISApiClient for data polling
+  late AISWebSocketClient aisClient;
   final Map<int, Map<String, dynamic>> shipDataMap = {}; // Ship data by MMSI
-  List<Marker> markers = []; // Markers dynamically generated from shipDataMap
+  List<Marker> markers = []; // Dynamically generated markers
 
   @override
   void initState() {
     super.initState();
+    getTokens();
+    // Initialize WebSocket client and connect
+    aisClient = AISWebSocketClient();
+    aisClient.connectAndReceive();
 
-    // Initialize AISApiClient with the API URL
-    aisClient = AISApiClient(
-        "https://api.vtexplorer.com/vesselslist?userkey=${Secrets.aisstreamApiKey}"); // Replace with your API URL
-    aisClient.startPolling(); // Start API polling
-
-    // Listen to the AIS data stream
-    aisClient.aisStreamController.stream.listen((aisDataRaw) {
-      _processAISData(aisDataRaw['AIS']); // Process individual AIS dat ca
-      _updateMarkers();
-    });
+    // Listen to the broadcast stream
+    aisClient.stream.listen(
+      (aisDataRaw) {
+        final parsedData = aisDataRaw;
+        final aisData = parsedData['ais_data'];
+        final anomalyResult = parsedData['anomaly_result'];
+        _processAISData(aisData, anomalyResult);
+        _updateMarkers();
+      },
+      onError: (error) {
+        print('Stream error: $error');
+      },
+      onDone: () {
+        print('Stream closed.');
+      },
+    );
   }
 
-  /// Process individual AIS data and update the shipDataMap
-  void _processAISData(Map<String, dynamic> aisData) {
+  /// Process AIS data and anomaly results
+  void _processAISData(
+      Map<String, dynamic> aisData, Map<String, dynamic> anomalyResult) {
     final mmsi = aisData['MMSI'];
     final latitude = aisData['LATITUDE'];
     final longitude = aisData['LONGITUDE'];
 
     if (mmsi != null && latitude != null && longitude != null) {
-      // Update or add ship data
       shipDataMap[mmsi] = {
         'MMSI': mmsi,
         'ShipName': aisData['NAME'] ?? "Unknown Ship",
@@ -56,23 +68,25 @@ class _MapScreenState extends State<MapScreen> {
         'IMO': aisData['IMO'] ?? "Unknown",
         'Timestamp': aisData['TIMESTAMP'] ?? "N/A",
         'Zone': aisData['ZONE'] ?? "N/A",
-        'DistanceRemaining': aisData['DISTANCE_REMAINING']?.toString() ?? "N/A",
-        'ETA_Predicted': aisData['ETA_PREDICTED'] ?? "N/A",
-        'Type': aisData['TYPE'] ?? "Unknown",
-        'A': aisData['A'] ?? "Unknown",
-        'B': aisData['B'] ?? "Unknown",
-        'C': aisData['C'] ?? "Unknown",
-        'D': aisData['D'] ?? "Unknown",
+        'Anomaly': anomalyResult['anomaly'] ?? false, // Anomaly status
+        'AnomalyProbability': anomalyResult['anomaly_probability'] ?? 0.0,
+        'OilSpillProbability': anomalyResult['oil_spill_probability'] ?? 0.0,
       };
     }
   }
 
-  /// Updates the markers list based on the current shipDataMap
+  void getTokens() async {
+    await NotificationService.getToken();
+  }
+
+  /// Updates the markers list
   void _updateMarkers() {
     markers = shipDataMap.values
         .map((shipData) {
           final position = shipData['Position'] as LatLng?;
-          if (position == null) return null; // Skip if position is missing
+          if (position == null) return null;
+
+          final isAnomalous = shipData['Anomaly'] as bool;
 
           return Marker(
             width: 30.0,
@@ -82,23 +96,25 @@ class _MapScreenState extends State<MapScreen> {
               onTap: () => _navigateToShipDetails(shipData),
               child: Tooltip(
                 message:
-                    'Ship: ${shipData['ShipName'] ?? "Unknown Ship"}\nMMSI: ${shipData['MMSI']}',
-                child: const Icon(
+                    'Ship: ${shipData['ShipName']}\nMMSI: ${shipData['MMSI']}',
+                child: Icon(
                   Icons.directions_boat,
                   size: 30.0,
-                  color: Colors.blue,
+                  color: isAnomalous
+                      ? Colors.red
+                      : Colors.blue, // Red for anomalies
                 ),
               ),
             ),
           );
         })
         .whereType<Marker>()
-        .toList(); // Filter out null markers
+        .toList();
 
     setState(() {});
   }
 
-  /// Navigate to ShipDetailsScreen with detailed ship data
+  /// Navigate to ShipDetailsScreen
   void _navigateToShipDetails(Map<String, dynamic> shipData) {
     Navigator.push(
       context,
@@ -117,15 +133,11 @@ class _MapScreenState extends State<MapScreen> {
             'CallSign': shipData['CallSign'] ?? "Unknown",
             'IMO': shipData['IMO'] ?? "Unknown",
             'Destination': shipData['Destination'] ?? "N/A",
-            'DistanceRemaining': shipData['DistanceRemaining'] ?? "N/A",
-            'ETA_Predicted': shipData['ETA_Predicted'] ?? "N/A",
             'Timestamp': shipData['Timestamp'] ?? "N/A",
             'Zone': shipData['Zone'] ?? "N/A",
-            'Type': shipData['Type'] ?? "Unknown",
-            'A': shipData['A'] ?? "Unknown",
-            'B': shipData['B'] ?? "Unknown",
-            'C': shipData['C'] ?? "Unknown",
-            'D': shipData['D'] ?? "Unknown",
+            'Anomaly': shipData['Anomaly'] ?? false,
+            'AnomalyProbability': shipData['AnomalyProbability'] ?? 0.0,
+            'OilSpillProbability': shipData['OilSpillProbability'] ?? 0.0,
           },
         ),
       ),
@@ -142,8 +154,8 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: FlutterMap(
         options: MapOptions(
-          initialCenter: LatLng(24.5, -90.0), // Default map center
-          initialZoom: 5.0, // Default zoom level
+          initialCenter: LatLng(24.5, -90.0),
+          initialZoom: 5.0,
         ),
         children: [
           TileLayer(
@@ -158,7 +170,7 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
-    aisClient.stopPolling(); // Stop polling and close the stream
+    aisClient.closeConnection();
     super.dispose();
   }
 }
