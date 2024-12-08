@@ -23,21 +23,21 @@ class AppTheme {
   static final inputDecoration = InputDecoration(
     contentPadding: const EdgeInsets.all(15),
     filled: true,
-    fillColor: Colors.transparent, // Match ProfilePage text fields
+    fillColor: Pallete.whiteColor, // Match ProfilePage text fields
     hintStyle: TextStyle(color: Colors.grey), // Grey hint for consistency
     disabledBorder: OutlineInputBorder(
       borderSide: BorderSide(color: Pallete.inactiveColor, width: 1.5),
       borderRadius: BorderRadius.circular(30), // Rounded to match button style
     ),
     focusedBorder: OutlineInputBorder(
-      borderSide:
-          BorderSide(color: Colors.white, width: 1.5), // White border on focus
-      borderRadius: BorderRadius.circular(30),
+      borderSide: BorderSide(
+          color: Pallete.primaryColor, width: 1.5), // White border on focus
+      borderRadius: BorderRadius.circular(10),
     ),
     enabledBorder: OutlineInputBorder(
       borderSide: BorderSide(
-          color: Pallete.primaryColor, width: 1.5), // Primary color border
-      borderRadius: BorderRadius.circular(30),
+          color: Pallete.whiteColor, width: 1.5), // Primary color border
+      borderRadius: BorderRadius.circular(10),
     ),
   );
 }

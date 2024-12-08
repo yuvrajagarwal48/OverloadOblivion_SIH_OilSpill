@@ -1,116 +1,127 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:spill_sentinel/core/theme/app_pallete.dart';
 import 'package:spill_sentinel/features/auth/presentation/pages/login_page.dart';
 import 'package:spill_sentinel/features/auth/presentation/pages/signup_page.dart';
 import 'package:spill_sentinel/features/auth/presentation/widgets/auth_button.dart';
 
-class LandingPage extends StatefulWidget {
+class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
 
   @override
-  State<LandingPage> createState() => _LandingPageState();
-}
-
-class _LandingPageState extends State<LandingPage> {
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(0),
-        child: Column(
-          children: [
-            // Header with Background Image
-            SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Image(
-                          image: AssetImage('assets/images/authBgImage.png'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+      body: Stack(
+        children: [
+          // Background Image
+          Positioned(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height,
+              child: Image.asset(
+                'assets/images/landing.gif',
+                fit: BoxFit.cover, // Ensures the image fills the screen
               ),
             ),
-            const SizedBox(height: 30),
-            // Main Content
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.7,
+          ),
+          // Gradient Overlay for better readability
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withOpacity(0.6), // Dark gradient at the top
+                    Colors.transparent, // Fades to transparent
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          ),
+          // Main Content
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  const Spacer(flex: 3),
+                  // Welcome Text Section
                   Column(
                     children: [
-                      const Text(
-                        "Welcome!",
+                      Text(
+                        "Spill Sentinel",
                         style: TextStyle(
                           fontSize: 50,
-                          fontWeight: FontWeight.w800,
-                          color: Pallete.primaryColor,
+                          fontWeight: FontWeight.bold,
+                          color: Pallete.whiteColor,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.5),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
                         ),
+                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(
-                          height: 8), // Add spacing between text elements
+                      const SizedBox(height: 8),
                       Text(
                         "The best place to manage oil spills",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          color: Pallete
-                              .whiteColor, // Use white for better contrast
+                          color: Colors.white.withOpacity(0.9),
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.5),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  const Spacer(flex: 2),
+                  // Buttons Section
+                  Column(
+                    children: [
+                      SizedBox(
+                        height: 50,
+                        child: AuthButton(
+                          text: 'Sign Up',
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const SignUpPage(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        height: 50,
+                        child: AuthButton(
+                          text: 'Log In',
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                              ),
+                            );
+                          },
+                          isInverted: true, // Adjusts button style
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: const Hero(
-                      tag: 'illustration',
-                      child: Image(
-                        image: AssetImage("assets/images/Illustration.png"),
-                        fit: BoxFit.fitWidth,
-                      ),
-                    ),
-                  ),
-                  // Auth Buttons
-                  Column(
-                    children: [
-                      AuthButton(
-                        text: 'Sign Up',
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const SignUpPage(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      AuthButton(
-                        text: 'Log In',
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const LoginPage(),
-                            ),
-                          );
-                        },
-                        isInverted: true,
-                      ),
-                    ],
-                  ),
+                  const Spacer(flex: 2),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

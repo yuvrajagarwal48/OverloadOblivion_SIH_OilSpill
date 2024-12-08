@@ -5,7 +5,6 @@ import 'package:spill_sentinel/core/utils/snackbar.dart';
 import 'package:spill_sentinel/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:spill_sentinel/map.dart';
 
-
 class VerificationPage extends StatefulWidget {
   const VerificationPage({super.key});
 
@@ -19,137 +18,141 @@ class _VerificationPageState extends State<VerificationPage> {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthEmailVerified) {
-          Navigator.of(context).pushReplacement(MaterialPageRoute(
-            builder: (context) => const MapScreen(),
-          ));
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const MapScreen()),
+          );
         } else if (state is AuthFailure) {
-          showSnackbar(context, state.message); // Use custom Snackbar
+          showSnackbar(context, state.message);
         } else if (state is AuthEmailVerificationInProgress) {
-          showSnackbar(context, 'Verification in progress. Please check your email.');
+          showSnackbar(
+              context, 'Verification in progress. Please check your email.');
         }
       },
       builder: (context, state) {
         return Scaffold(
-          body: SingleChildScrollView(
-            child: Column(
-              children: [
-                // Header with Background Image
-                SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: const Row(
-                    children: [
-                      Expanded(
-                        child: Image(
-                          image: AssetImage('assets/images/authBgImage.png'),
-                          fit: BoxFit.cover,
-                        ),
+          body: Stack(
+            children: [
+              // Background Image
+              SizedBox(
+                height: MediaQuery.of(context).size.height,
+                child: Positioned.fill(
+                  child: Image.asset(
+                    'assets/images/landing.gif',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              // Content Container
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 30),
-                // Main Content
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.7,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SingleChildScrollView(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        _buildHeader(),
-                        _buildActionButtons(state),
+                        // Logo or Header Image
+
+                        const SizedBox(height: 20),
+                        // Title Section
+                        const Text(
+                          "Verify Your Email",
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Pallete.primaryColor,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          "A verification link will be sent to your email address. Please verify your email to continue.",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Pallete.greyColor,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 30),
+                        // Verify Email Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: state is AuthLoading
+                                ? null
+                                : () {
+                                    context
+                                        .read<AuthBloc>()
+                                        .add(AuthEmailVerification());
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Pallete.primaryColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: state is AuthLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    "Verify Email",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        // Resend Email Button
+                        TextButton(
+                          onPressed: state is AuthLoading
+                              ? null
+                              : () {
+                                  context
+                                      .read<AuthBloc>()
+                                      .add(AuthEmailVerification());
+                                },
+                          child: const Text(
+                            "Resend Verification Email",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Pallete.primaryColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Footer Section
                       ],
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
-    );
-  }
-
-  Widget _buildHeader() {
-    return Column(
-      children: [
-        const Text(
-          "Verify your email!",
-          style: TextStyle(
-            fontSize: 50,
-            fontWeight: FontWeight.w800,
-            color: Pallete.primaryColor,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 10),
-        Text(
-          "Please verify your email to continue",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Pallete.greyColor, // Ensure consistent color
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons(AuthState state) {
-    return Column(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: state is AuthLoading
-                ? null
-                : () {
-                    context.read<AuthBloc>().add(AuthEmailVerification());
-                  },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Pallete.primaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: state is AuthLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : const Text(
-                    'Verify Email',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        TextButton(
-          onPressed: state is AuthLoading
-              ? null
-              : () {
-                  context.read<AuthBloc>().add(AuthEmailVerification());
-                },
-          child: const Text(
-            'Resend Email',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Pallete.primaryColor,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
