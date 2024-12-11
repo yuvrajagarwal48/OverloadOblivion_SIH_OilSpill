@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:spill_sentinel/secrets.dart';
 
 class ReportIncidentPage extends StatefulWidget {
   @override
@@ -8,10 +11,18 @@ class ReportIncidentPage extends StatefulWidget {
 }
 
 class _ReportIncidentPageState extends State<ReportIncidentPage> {
+  // Marine color palette
+  final Color primaryBlue = const Color(0xFF3498db);
+  final Color deepBlue = const Color(0xFF2980b9);
+  final Color lightBlue = const Color(0xFF5dade2);
+  final Color backgroundBlue = const Color(0xFFe8f4f8);
+  final Color accentColor = const Color(0xFF1abc9c);
+
   final ImagePicker _picker = ImagePicker();
   XFile? _incidentImage;
   final TextEditingController _descriptionController = TextEditingController();
   String? _selectedIncidentType;
+  String? _thirdPartyImage;
 
   final List<String> _incidentTypes = [
     'Oil Spill',
@@ -19,6 +30,23 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
     'Pollution',
     'Other',
   ];
+
+  Future<String> getThirdPartyImage() async {
+    Dio dio = Dio();
+
+    FormData formData = FormData.fromMap({
+      if (_incidentImage != null)
+        'file': await MultipartFile.fromFile(_incidentImage!.path),
+    });
+
+    final response = await dio.post(
+      '${Secrets.thirdPartyUrl}/detect/',
+      data: formData,
+    );
+    print('Response: ${response.data}');
+
+    return response.data['image_base64'];
+  }
 
   Future<void> _pickImage() async {
     showModalBottomSheet(
@@ -28,7 +56,7 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
         return Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.cyan.shade700, Colors.blueAccent.shade100],
+              colors: [deepBlue, lightBlue],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -39,8 +67,9 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
             children: [
               ListTile(
                 leading: Icon(Icons.camera_alt, color: Colors.white),
-                title:
-                    Text('Take a Photo', style: TextStyle(color: Colors.white)),
+                title: Text('Take a Photo',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () async {
                   final XFile? image =
                       await _picker.pickImage(source: ImageSource.camera);
@@ -53,7 +82,8 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
               ListTile(
                 leading: Icon(Icons.photo_library, color: Colors.white),
                 title: Text('Choose from Gallery',
-                    style: TextStyle(color: Colors.white)),
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () async {
                   final XFile? image =
                       await _picker.pickImage(source: ImageSource.gallery);
@@ -71,56 +101,59 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
     );
   }
 
-  void _submitReport() {
+  void _submitReport() async {
     if (_selectedIncidentType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select an incident type')),
+        SnackBar(
+          content: Text('Please select an incident type'),
+          backgroundColor: accentColor,
+        ),
       );
       return;
     }
 
     if (_incidentImage == null && _selectedIncidentType != 'Other') {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please upload an image for the incident')),
+        SnackBar(
+          content: Text('Please upload an image for the incident'),
+          backgroundColor: accentColor,
+        ),
       );
       return;
     }
 
-    String incidentType = _selectedIncidentType!;
-    String description = _descriptionController.text;
-
-    // Implement your submission logic here (e.g., upload to backend)
-
-    // Clear the fields after submission
+    final image = await getThirdPartyImage();
+    print('Image: $image');
     setState(() {
-      _incidentImage = null;
-      _descriptionController.clear();
-      _selectedIncidentType = null;
+      _thirdPartyImage = image;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Report Submitted Successfully')),
+      SnackBar(
+        content: Text('Report Submitted Successfully'),
+        backgroundColor: accentColor,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.cyan.shade50,
+      backgroundColor: backgroundBlue,
       appBar: AppBar(
         title: Text(
           "Report Incident",
           style: TextStyle(
               color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.cyan.shade700,
+        backgroundColor: deepBlue,
         elevation: 0,
         centerTitle: true,
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.cyan.shade300, Colors.blueAccent.shade100],
+            colors: [primaryBlue, lightBlue],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -133,8 +166,6 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
                 _buildDropdownSection(),
                 SizedBox(height: 20),
                 _buildImageUploadSection(),
-                SizedBox(height: 20),
-                _buildDescriptionSection(),
                 SizedBox(height: 30),
                 _buildSubmitButton(),
               ],
@@ -168,9 +199,9 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
         Container(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.cyan.shade100.withOpacity(0.8),
+            color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white, width: 3),
+            border: Border.all(color: Colors.white, width: 2),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -180,7 +211,7 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
               ),
               value: _selectedIncidentType,
               isExpanded: true,
-              dropdownColor: Colors.cyan.shade700,
+              dropdownColor: deepBlue,
               icon: Icon(Icons.arrow_drop_down, color: Colors.white),
               items: _incidentTypes.map((String type) {
                 return DropdownMenuItem<String>(
@@ -195,8 +226,7 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
                 setState(() {
                   _selectedIncidentType = newValue;
                   if (_selectedIncidentType == 'Other') {
-                    _incidentImage =
-                        null; // Optionally handle image differently for 'Other'
+                    _incidentImage = null;
                   }
                 });
               },
@@ -235,9 +265,9 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
             child: Container(
               height: 180,
               decoration: BoxDecoration(
-                color: Colors.cyan.shade100.withOpacity(0.8),
+                color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white, width: 3),
+                border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black26,
@@ -274,53 +304,41 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
                     ),
             ),
           ),
+          SizedBox(height: 20),
+          _thirdPartyImage != null
+              ? Container(
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10,
+                        offset: Offset(5, 5),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.memory(
+                      base64Decode(_thirdPartyImage!),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ),
+                  ),
+                )
+              : SizedBox.shrink(),
         ],
       ),
-    );
-  }
-
-  Widget _buildDescriptionSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Description",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                blurRadius: 10.0,
-                color: Colors.black45,
-                offset: Offset(2.0, 2.0),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 10),
-        TextField(
-          controller: _descriptionController,
-          maxLines: 6,
-          decoration: InputDecoration(
-            hintText: "Write about the incident...",
-            filled: true,
-            fillColor: Colors.cyan.shade50.withOpacity(0.8),
-            hintStyle: TextStyle(color: Colors.cyan.shade200),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
   Widget _buildSubmitButton() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.cyan.shade700,
+        backgroundColor: deepBlue,
         padding: EdgeInsets.symmetric(horizontal: 60, vertical: 15),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),

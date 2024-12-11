@@ -12,6 +12,12 @@ class LayoutPage extends StatefulWidget {
 }
 
 class _LayoutPageState extends State<LayoutPage> {
+  // Aquatic color palette
+  final Color primaryBlue = const Color(0xFF3498db);
+  final Color deepBlue = const Color(0xFF2980b9);
+  final Color lightBlue = const Color(0xFF5dade2);
+  final Color backgroundBlue = const Color(0xFFe8f4f8);
+
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
@@ -24,18 +30,26 @@ class _LayoutPageState extends State<LayoutPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundBlue,
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          gradient: LinearGradient(
+            colors: [
+              primaryBlue.withOpacity(0.8),
+              deepBlue.withOpacity(0.9),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+            topLeft: Radius.circular(25),
+            topRight: Radius.circular(25),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              spreadRadius: 5,
+              color: Colors.black.withOpacity(0.2),
+              spreadRadius: 3,
               blurRadius: 10,
               offset: const Offset(0, -3),
             ),
@@ -71,26 +85,26 @@ class _LayoutPageState extends State<LayoutPage> {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.blueAccent.withOpacity(0.2)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          color:
+              isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(15),
         ),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              color: isSelected ? Colors.blueAccent : Colors.grey,
+              color: isSelected ? Colors.white : Colors.white70,
               size: isSelected ? 28 : 24,
             ),
-            const SizedBox(width: 8),
+            if (isSelected) const SizedBox(height: 4),
             if (isSelected)
               Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.blueAccent,
+                style: TextStyle(
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 12,
                 ),
               ),
           ],
