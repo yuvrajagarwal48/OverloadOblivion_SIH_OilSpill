@@ -28,28 +28,29 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     getTokens();
-    // // Initialize WebSocket client and connect
-    // aisClient = AISWebSocketClient();
-    // aisClient.connectAndReceive();
+    // Initialize WebSocket client and connect
+    aisClient = AISWebSocketClient();
+    aisClient.connectAndReceive();
 
-    // // Listen to the broadcast stream
-    // aisClient.stream.listen(
-    //   (aisDataRaw) {
-    //     final parsedData = aisDataRaw;
-    //     final aisData = parsedData['ais_data'];
-    //     final anomalyResult = parsedData['anomaly_result'];
-    //     _processAISData(aisData, anomalyResult);
-    //     _updateMarkers();
-    //   },
-    //   onError: (error) {
-    //     print('Stream error: $error');
-    //   },
-    //   onDone: () {
-    //     print('Stream closed.');
-    //   },
-    //);
-    _addDummyData();
-    _updateMarkers();
+    // Listen to the broadcast stream
+    aisClient.stream.listen(
+      (aisDataRaw) {
+        final parsedData = aisDataRaw;
+        final aisData = parsedData['ais_data'];
+        final anomalyResult = parsedData['anomaly_result'];
+        _processAISData(aisData, anomalyResult);
+        _updateMarkers();
+        print(shipDataMap);
+      },
+      onError: (error) {
+        print('Stream error: $error');
+      },
+      onDone: () {
+        print('Stream closed.');
+      },
+    );
+    // _addDummyData();
+    // _updateMarkers();
   }
 
   void _addDummyData() {
@@ -69,7 +70,7 @@ class _MapScreenState extends State<MapScreen> {
       'Timestamp': '2024-11-29 12:30 UTC',
       'Zone': 'Gulf of Mexico',
       'Course': '45°', // Dummy course
-      'Type': 'Cargo Ship', // Dummy type
+      'Type': 52, // Dummy type
       'A': '25 m', // Dummy bow distance
       'B': '30 m', // Dummy stern distance
       'C': '10 m', // Dummy port distance
@@ -153,41 +154,42 @@ class _MapScreenState extends State<MapScreen> {
   /// Process AIS data and anomaly results
   void _processAISData(
       Map<String, dynamic> aisData, Map<String, dynamic> anomalyResult) {
-    final mmsi = aisData['MMSI'];
-    final latitude = aisData['LATITUDE'];
-    final longitude = aisData['LONGITUDE'];
+    final mmsi = aisData['MMSI'] as int?;
+    final latitude = aisData['LATITUDE'] as double?;
+    final longitude = aisData['LONGITUDE'] as double?;
 
     if (mmsi != null && latitude != null && longitude != null) {
       shipDataMap[mmsi] = {
         'MMSI': mmsi,
-        'ShipName': aisData['NAME'] ?? "Unknown Ship",
+        'ShipName': aisData['NAME']?.toString() ?? "Unknown Ship",
         'Position': LatLng(latitude, longitude),
-        'Speed': '${aisData['SPEED'] ?? "0"} kn',
-        'Heading': '${aisData['HEADING'] ?? "N/A"}°',
+        'Speed': "${aisData['SPEED']?.toString() ?? "0"} kn",
+        'Heading': "${aisData['HEADING']?.toString() ?? "N/A"}°",
         'Status': aisData['NAVSTAT']?.toString() ?? "N/A",
-        'ETA': aisData['ETA'] ?? "N/A",
-        'Destination': aisData['DESTINATION'] ?? "N/A",
-        'Draught': aisData['DRAUGHT']?.toString() ?? "Unknown",
-        'CallSign': aisData['CALLSIGN'] ?? "Unknown",
-        'IMO': aisData['IMO'] ?? "Unknown",
-        'Timestamp': aisData['TIMESTAMP'] ?? "N/A",
-        'Zone': aisData['ZONE'] ?? "N/A",
-        'Course': aisData['COURSE'] ?? "N/A", // New field
-        'Type': aisData['TYPE'] ?? "Unknown", // New field
-        'A': aisData['A'] ?? "Unknown", // New field
-        'B': aisData['B'] ?? "Unknown", // New field
-        'C': aisData['C'] ?? "Unknown", // New field
-        'D': aisData['D'] ?? "Unknown", // New field
-        'LOCODE': aisData['LOCODE'] ?? "Unknown", // New field
-        'SRC': aisData['SRC'] ?? "Unknown", // New field
-        'ECA': aisData['ECA'] ?? false, // New field
-        'DistanceRemaining':
-            aisData['DISTANCE_REMAINING'] ?? "Unknown", // New field
-        'ETAAIS': aisData['ETA_AIS'] ?? "Unknown", // New field
-        'ETAPredicted': aisData['ETA_PREDICTED'] ?? "Unknown", // New field
+        'ETA': aisData['ETA']?.toString() ?? "N/A",
+        'Destination': aisData['DESTINATION']?.toString() ?? "N/A",
+        'Draught': "${aisData['DRAUGHT']?.toString() ?? "Unknown"} m",
+        'CallSign': aisData['CALLSIGN']?.toString() ?? "Unknown",
+        'IMO': aisData['IMO']?.toString() ?? "Unknown",
+        'Timestamp': aisData['TIMESTAMP']?.toString() ?? "N/A",
+        'Zone': aisData['ZONE']?.toString() ?? "N/A",
+        'Course': "${aisData['COURSE']?.toString() ?? "N/A"}°",
+        'Type': aisData['TYPE']?.toString() ?? "Unknown",
+        'A': aisData['A']?.toString() ?? "Unknown",
+        'B': aisData['B']?.toString() ?? "Unknown",
+        'C': aisData['C']?.toString() ?? "Unknown",
+        'D': aisData['D']?.toString() ?? "Unknown",
+        'LOCODE': aisData['LOCODE']?.toString() ?? "Unknown",
+        'SRC': aisData['SRC']?.toString() ?? "Unknown",
+        'ECA': aisData['ECA'] ?? false,
+        'DistanceRemaining': aisData['DISTANCE_REMAINING']?.toString() ?? "N/A",
+        'ETAAIS': aisData['ETA_AIS']?.toString() ?? "Unknown",
+        'ETAPredicted': aisData['ETA_PREDICTED']?.toString() ?? "Unknown",
         'Anomaly': anomalyResult['anomaly'] ?? false,
-        'AnomalyProbability': anomalyResult['anomaly_probability'] ?? 0.0,
-        'OilSpillProbability': anomalyResult['oil_spill_probability'] ?? 0.0,
+        'AnomalyProbability':
+            anomalyResult['anomaly_probability']?.toDouble() ?? 0.0,
+        'OilSpillProbability':
+            anomalyResult['oil_spill_probability']?.toDouble() ?? 0.0,
       };
     }
   }
@@ -204,23 +206,49 @@ class _MapScreenState extends State<MapScreen> {
           if (position == null) return null;
 
           final isAnomalous = shipData['Anomaly'] as bool;
+          final heading = double.tryParse(
+                  shipData['Heading']?.toString().replaceAll('°', '') ?? '0') ??
+              0;
 
           return Marker(
-            width: 30.0,
-            height: 30.0,
+            width: isAnomalous ? 60.0 : 40.0,
+            height: isAnomalous ? 60.0 : 40.0,
             point: position,
             child: GestureDetector(
               onTap: () => _navigateToShipDetails(shipData),
-              child: Tooltip(
-                message:
-                    'Ship: ${shipData['ShipName']}\nMMSI: ${shipData['MMSI']}',
-                child: Icon(
-                  Icons.directions_boat,
-                  size: 30.0,
-                  color: isAnomalous
-                      ? Colors.red
-                      : Colors.blue, // Red for anomalies
-                ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Pulsing effect for anomalous ships
+                  if (isAnomalous)
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.2, end: 0.6),
+                      duration: const Duration(milliseconds: 800),
+                      builder: (context, scale, child) {
+                        return Transform.scale(
+                          scale: scale,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.3),
+                              shape: BoxShape.circle,
+                            ),
+                            width: 60,
+                            height: 60,
+                          ),
+                        );
+                      },
+                    ),
+
+                  // Ship marker with direction
+                  Transform.rotate(
+                    angle: (heading * pi / 180), // Convert degrees to radians
+                    child: Icon(
+                      Icons.navigation,
+                      size: isAnomalous ? 30.0 : 20.0,
+                      color: isAnomalous ? Colors.red : Colors.blue,
+                    ),
+                  ),
+                ],
               ),
             ),
           );
@@ -231,7 +259,6 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {});
   }
 
-  /// Navigate to ShipDetailsScreen
   void _navigateToShipDetails(Map<String, dynamic> shipData) {
     Navigator.push(
       context,
@@ -239,22 +266,18 @@ class _MapScreenState extends State<MapScreen> {
         builder: (context) => ShipDetailsScreen(
           shipData: {
             'ShipName': shipData['ShipName'] ?? "Unknown Ship",
-            'MMSI': shipData['MMSI'],
-            'Flag': shipData['Flag'] ?? "Unknown",
-            'ETA': shipData['ETA'] ?? "N/A",
-            'Status': shipData['Status'] ?? "N/A",
+            'MMSI': shipData['MMSI']?.toString() ?? "Unknown",
+            'Position': shipData['Position'] as LatLng?,
             'Speed': shipData['Speed'] ?? "0 kn",
-            'Draught': shipData['Draught'] ?? "Unknown",
             'Heading': shipData['Heading'] ?? "N/A",
-            'Position': shipData['Position'],
+            'Status': shipData['Status'] ?? "N/A",
+            'ETA': shipData['ETA'] ?? "N/A",
+            'Destination': shipData['Destination'] ?? "N/A",
+            'Draught': shipData['Draught'] ?? "Unknown",
             'CallSign': shipData['CallSign'] ?? "Unknown",
             'IMO': shipData['IMO'] ?? "Unknown",
-            'Destination': shipData['Destination'] ?? "N/A",
             'Timestamp': shipData['Timestamp'] ?? "N/A",
             'Zone': shipData['Zone'] ?? "N/A",
-            'Anomaly': shipData['Anomaly'] ?? false,
-            'AnomalyProbability': shipData['AnomalyProbability'] ?? 0.0,
-            'OilSpillProbability': shipData['OilSpillProbability'] ?? 0.0,
             'Course': shipData['Course'] ?? "N/A",
             'Type': shipData['Type'] ?? "Unknown",
             'A': shipData['A'] ?? "Unknown",
@@ -264,9 +287,12 @@ class _MapScreenState extends State<MapScreen> {
             'LOCODE': shipData['LOCODE'] ?? "Unknown",
             'SRC': shipData['SRC'] ?? "Unknown",
             'ECA': shipData['ECA'] ?? false,
-            'DistanceRemaining': shipData['DistanceRemaining'] ?? "Unknown",
+            'DistanceRemaining': shipData['DistanceRemaining'] ?? "N/A",
             'ETAAIS': shipData['ETAAIS'] ?? "Unknown",
             'ETAPredicted': shipData['ETAPredicted'] ?? "Unknown",
+            'Anomaly': shipData['Anomaly'] ?? false,
+            'AnomalyProbability': shipData['AnomalyProbability'] ?? 0.0,
+            'OilSpillProbability': shipData['OilSpillProbability'] ?? 0.0,
           },
         ),
       ),

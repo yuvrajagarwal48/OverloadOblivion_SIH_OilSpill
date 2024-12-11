@@ -4,9 +4,9 @@ class Pallete {
   static const Color backgroundColor =
       Color.fromARGB(255, 202, 228, 255); // Dark shade as background
   static const Color primaryColor =
-      Color.fromARGB(255, 2, 73, 161); // Deep blue as primary color
+      Color.fromARGB(255, 56, 189, 248); // Deep blue as primary color
   static const Color secondaryColor =
-      Color.fromARGB(255, 20, 98, 223); // Bold red as secondary color
+      Color.fromARGB(255, 0, 159, 227); // Bold red as secondary color
 
   static const Color inactiveColor =
       Color(0xFFD9D8D8); // Light grey for inactive elements

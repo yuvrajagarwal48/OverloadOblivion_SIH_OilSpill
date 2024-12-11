@@ -8,6 +8,7 @@ import 'package:spill_sentinel/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:spill_sentinel/features/auth/presentation/pages/landing_page.dart';
 import 'package:spill_sentinel/features/auth/presentation/pages/verification_page.dart';
 import 'package:spill_sentinel/init_dependencies.dart';
+import 'package:spill_sentinel/layout_page.dart';
 import 'package:spill_sentinel/map.dart';
 import 'package:spill_sentinel/services/notification_service.dart';
 import 'package:spill_sentinel/testpage.dart';
@@ -65,7 +66,7 @@ class _AppInitializerState extends State<AppInitializer> {
     super.initState();
     // Dispatch AuthIsUserLoggedIn event once when the app initializes
     context.read<AuthBloc>().add(AuthIsUserLoggedIn());
-    NotificationService.showNotification(context);
+    // NotificationService.showNotification(context);
   }
 
   @override
@@ -87,7 +88,7 @@ class _AppInitializerState extends State<AppInitializer> {
             print(state);
             return const VerificationPage();
           } else if (state is AuthEmailVerified) {
-            return const MapScreen();
+            return const LayoutPage();
           } else {
             return const LandingPage();
           }
