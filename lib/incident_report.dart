@@ -1,6 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:spill_sentinel/secrets.dart';
 
 class ReportIncidentPage extends StatefulWidget {
   @override
@@ -12,6 +17,7 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
   XFile? _incidentImage;
   final TextEditingController _descriptionController = TextEditingController();
   String? _selectedIncidentType;
+  String? _thirdPartyImage;
 
   final List<String> _incidentTypes = [
     'Oil Spill',
@@ -19,6 +25,23 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
     'Pollution',
     'Other',
   ];
+
+  Future<String> getThirdPartyImage() async {
+    Dio dio = Dio();
+
+    FormData formData = FormData.fromMap({
+      if (_incidentImage != null)
+        'file': await MultipartFile.fromFile(_incidentImage!.path),
+    });
+
+    final response = await dio.post(
+      '${Secrets.thirdPartyUrl}/detect/',
+      data: formData,
+    );
+    print('Response: ${response.data}');
+
+    return response.data['image_base64'];
+  }
 
   Future<void> _pickImage() async {
     showModalBottomSheet(
@@ -71,7 +94,7 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
     );
   }
 
-  void _submitReport() {
+  void _submitReport() async {
     if (_selectedIncidentType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please select an incident type')),
@@ -89,14 +112,18 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
     String incidentType = _selectedIncidentType!;
     String description = _descriptionController.text;
 
-    // Implement your submission logic here (e.g., upload to backend)
-
-    // Clear the fields after submission
+    final image = await getThirdPartyImage();
+    print('Image: $image');
     setState(() {
-      _incidentImage = null;
-      _descriptionController.clear();
-      _selectedIncidentType = null;
+      _thirdPartyImage = image;
     });
+
+    // // Clear the fields after submission
+    // setState(() {
+    //   _incidentImage = null;
+    //   _descriptionController.clear();
+    //   _selectedIncidentType = null;
+    // });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Report Submitted Successfully')),
@@ -134,7 +161,6 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
                 SizedBox(height: 20),
                 _buildImageUploadSection(),
                 SizedBox(height: 20),
-                _buildDescriptionSection(),
                 SizedBox(height: 30),
                 _buildSubmitButton(),
               ],
@@ -274,46 +300,34 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
                     ),
             ),
           ),
+          SizedBox(height: 20),
+          _thirdPartyImage != null
+              ? Container(
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.cyan.shade100.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10,
+                        offset: Offset(5, 5),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.memory(
+                      base64Decode(_thirdPartyImage!),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ),
+                  ),
+                )
+              : SizedBox.shrink(),
         ],
       ),
-    );
-  }
-
-  Widget _buildDescriptionSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Description",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                blurRadius: 10.0,
-                color: Colors.black45,
-                offset: Offset(2.0, 2.0),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 10),
-        TextField(
-          controller: _descriptionController,
-          maxLines: 6,
-          decoration: InputDecoration(
-            hintText: "Write about the incident...",
-            filled: true,
-            fillColor: Colors.cyan.shade50.withOpacity(0.8),
-            hintStyle: TextStyle(color: Colors.cyan.shade200),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        ),
-      ],
     );
   }
 

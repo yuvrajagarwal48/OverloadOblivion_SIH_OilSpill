@@ -143,10 +143,6 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen>
                 const SizedBox(height: 24),
                 _buildProbabilityIndicator(
                     'Anomaly Probability', anomalyProbability),
-                const SizedBox(height: 24),
-                _buildProbabilityIndicator(
-                    'Oil Spill Probability', oilSpillProbability,
-                    color: Colors.orangeAccent),
               ],
             ),
           ),

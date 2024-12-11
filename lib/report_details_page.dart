@@ -46,7 +46,8 @@ class ReportDetailPage extends StatelessWidget {
             _buildKeyValue('Oil Spill Probability',
                 anomalyResult['oil_spill_probability']),
             SizedBox(height: 10),
-
+            _buildImageSection(
+                'Annotated Image', sarPrediction['Annotated_image']),
             _buildImageSection(
               'Force Plot',
               anomalyResult['force_plot'],
@@ -55,10 +56,10 @@ class ReportDetailPage extends StatelessWidget {
               'Waterfall Plot',
               anomalyResult['waterfall_plot'],
             ),
-            _buildImageSection(
-              'Feature Contribution Plot',
-              anomalyResult['feature_contribution_plot'],
-            ),
+            // _buildImageSection(
+            //   'Feature Contribution Plot',
+            //   anomalyResult['feature_contribution_plot'],
+            // ),
             SizedBox(height: 20),
 
             // SAR Prediction Section
