@@ -5,8 +5,8 @@ import google.auth.transport.requests
 from google.cloud import firestore
 
 # Initialize Firestore
-# service_account_file = './spill-sentinel-firebase-adminsdk-tdawx-9b03a5a598.json'
-service_account_file='/home/yuvraj/Coding/sih_main/scripts/spill-sentinel-firebase-adminsdk-tdawx-9b03a5a598.json'
+
+service_account_file='scripts/spill-sentinel-firebase-adminsdk-tdawx-df80652d13.json'
 credentials = service_account.Credentials.from_service_account_file(
     service_account_file, scopes=['https://www.googleapis.com/auth/firebase.messaging','https://www.googleapis.com/auth/datastore']
 )

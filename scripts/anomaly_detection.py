@@ -44,7 +44,7 @@ class BiLSTM(nn.Module):
 
 
 class AnomalyDetector:
-    def __init__(self, model_folder="/home/yuvraj/Coding/sih/lstm_model_7"):
+    def __init__(self, model_folder="models/lstm_model_7"):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model_folder = model_folder
         # Load the models and scaler
@@ -113,7 +113,7 @@ class AnomalyDetector:
         input = self.prepare_data(input_df)
         predicted_value = self.predict(input)
         return {
-            "anomaly": predicted_value > 0.26,
+            "anomaly": predicted_value > 0.32,
             "anomaly_probability": predicted_value,
         }
 

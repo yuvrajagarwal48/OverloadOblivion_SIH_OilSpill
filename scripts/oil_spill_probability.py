@@ -75,7 +75,7 @@ class VAE(nn.Module):
         return x_hat
 
 class OilProbability:
-    def __init__(self, model_folder="/home/yuvraj/Coding/sih_main/models/vae_model_7", normal_errors_file="/home/yuvraj/Coding/sih_main/models/vae_model_7/normal_reconstruction_errors.npy"):
+    def __init__(self, model_folder="models/vae_model_7", normal_errors_file="models/vae_model_7/normal_reconstruction_errors.npy"):
         self.device = device
         self.model_folder = model_folder
         
