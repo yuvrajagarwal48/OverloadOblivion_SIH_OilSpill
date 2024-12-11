@@ -69,7 +69,7 @@ class _MapScreenState extends State<MapScreen> {
       'Timestamp': '2024-11-29 12:30 UTC',
       'Zone': 'Gulf of Mexico',
       'Course': '45°', // Dummy course
-      'Type': 'Cargo Ship', // Dummy type
+      'Type': 52, // Dummy type
       'A': '25 m', // Dummy bow distance
       'B': '30 m', // Dummy stern distance
       'C': '10 m', // Dummy port distance
