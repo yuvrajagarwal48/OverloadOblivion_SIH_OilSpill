@@ -328,7 +328,7 @@ packages:
       sha256: efaf3fdc54cd77e0eedb8e75f7f01c808828c64d052ddbf94d3009974e47d30f
       url: "https://pub.dev"
     source: hosted
-    version: "3.9.4"
+    version: "3.9.5"
   fixnum:
     dependency: transitive
     description:
