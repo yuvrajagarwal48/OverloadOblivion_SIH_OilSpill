@@ -63,6 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '443908977919',
     projectId: 'spill-sentinel',
     storageBucket: 'spill-sentinel.firebasestorage.app',
-    iosBundleId: 'com.example.spillSentinel',
+    iosBundleId: 'com.oblivion.spillSentinel',
   );
 }

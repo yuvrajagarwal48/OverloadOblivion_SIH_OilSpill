@@ -27,8 +27,9 @@ Future<void> initDependencies() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await NotificationService.initialize();
-  _initAuth();
+  await NotificationService.forgroundMessage();
 
+  _initAuth();
 
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
@@ -107,8 +108,8 @@ void _initAuth() {
       ),
     )
     ..registerFactory(() => AuthBloc(
-      updateEmailVerification: serviceLocator(),
-      logger: serviceLocator(),
+          updateEmailVerification: serviceLocator(),
+          logger: serviceLocator(),
           userSignup: serviceLocator(),
           userLogin: serviceLocator(),
           currentUser: serviceLocator(),
