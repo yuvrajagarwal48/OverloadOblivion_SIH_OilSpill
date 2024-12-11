@@ -124,7 +124,7 @@ class VoyageDetailsCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Distance Remaining: ${shipData['DistanceRemaining'] ?? 0} nm',
+              'Distance Remaining: ${shipData['DistanceRemaining'] ?? '0'} nm',
               style: TextStyle(color: Colors.grey.shade700),
             ),
             Text(

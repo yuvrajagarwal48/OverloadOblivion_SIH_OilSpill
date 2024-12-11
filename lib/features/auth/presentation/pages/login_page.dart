@@ -7,6 +7,7 @@ import 'package:spill_sentinel/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:spill_sentinel/features/auth/presentation/pages/verification_page.dart';
 import 'package:spill_sentinel/features/auth/presentation/widgets/auth_button.dart';
 import 'package:spill_sentinel/features/auth/presentation/widgets/auth_textfield.dart';
+import 'package:spill_sentinel/layout_page.dart';
 import 'package:spill_sentinel/map.dart';
 
 class LoginPage extends StatefulWidget {
@@ -167,7 +168,7 @@ class _LoginPageState extends State<LoginPage>
                                             .read<AuthBloc>()
                                             .add(AuthIsUserEmailVerified());
                                         return state is AuthEmailVerified
-                                            ? const MapScreen()
+                                            ? const LayoutPage()
                                             : const VerificationPage();
                                       },
                                     ),

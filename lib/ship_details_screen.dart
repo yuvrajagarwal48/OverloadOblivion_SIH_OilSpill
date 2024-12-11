@@ -206,7 +206,7 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Type: ${shipData['Type'] != null ? getTypeDescription(shipData['Type']) : "Unknown"}',
+                    'Type: ${shipData['Type'] != null ? int.parse(shipData['Type']) : "Unknown"}',
                     style: TextStyle(
                       fontSize: 16,
                       color: Pallete.primaryColor,
@@ -381,7 +381,7 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen>
             children: [
               // Status Section
               Text(
-                'Status: ${shipData['Status'] != null ? getStatusDescription(int.parse(shipData['Status'].toString())) : "Unknown"}',
+                'Status: ${shipData['Status'] != null ? getStatusDescription(int.parse(shipData['Status'])) : "Unknown"}',
                 style: TextStyle(
                   color: Pallete.primaryColor,
                   fontWeight: FontWeight.bold,
@@ -578,7 +578,7 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen>
                   {'label': 'Speed', 'value': '${shipData['Speed']} kn'},
                   {'label': 'Heading', 'value': '${shipData['Heading']}°'},
                   {'label': 'Draught', 'value': '${shipData['Draught']} m'},
-                  {'label': 'Zone', 'value': shipData['Zone'] ?? "N/A"},  
+                  {'label': 'Zone', 'value': shipData['Zone'] ?? "N/A"},
                 ]),
               ],
             ),

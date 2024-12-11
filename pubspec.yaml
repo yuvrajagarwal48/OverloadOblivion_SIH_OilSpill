@@ -54,6 +54,8 @@ dependencies:
   csc_picker: ^0.2.7
   firebase_messaging: ^15.1.5
   flutter_animate: ^4.5.2
+  image_picker: ^1.1.2
+  dash_chat_2: ^0.0.21
 
 dev_dependencies:
   flutter_test:

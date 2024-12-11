@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spill_sentinel/core/theme/app_pallete.dart';
 import 'package:spill_sentinel/core/utils/snackbar.dart';
 import 'package:spill_sentinel/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:spill_sentinel/layout_page.dart';
 import 'package:spill_sentinel/map.dart';
 
 class VerificationPage extends StatefulWidget {
@@ -19,7 +20,7 @@ class _VerificationPageState extends State<VerificationPage> {
       listener: (context, state) {
         if (state is AuthEmailVerified) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const MapScreen()),
+            MaterialPageRoute(builder: (context) => const LayoutPage()),
           );
         } else if (state is AuthFailure) {
           showSnackbar(context, state.message);

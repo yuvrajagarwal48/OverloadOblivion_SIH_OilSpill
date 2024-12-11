@@ -6,7 +6,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 class AISWebSocketClient {
   final String uri;
   late WebSocketChannel channel;
-  final StreamController<dynamic> _streamController = StreamController.broadcast();
+  final StreamController<dynamic> _streamController =
+      StreamController.broadcast();
 
   AISWebSocketClient({this.uri = Secrets.anomalyUrl});
 
@@ -29,6 +30,7 @@ class AISWebSocketClient {
           try {
             final aisData = jsonDecode(message);
             _streamController.add(aisData); // Add data to the broadcast stream
+            print(aisData);
           } catch (e) {
             print('Error decoding JSON: $e');
           }
