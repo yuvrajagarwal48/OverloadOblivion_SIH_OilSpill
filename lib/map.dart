@@ -40,7 +40,7 @@ class _MapScreenState extends State<MapScreen> {
         final anomalyResult = parsedData['anomaly_result'];
         _processAISData(aisData, anomalyResult);
         _updateMarkers();
-        print(shipDataMap);
+      //  print(shipDataMap);
       },
       onError: (error) {
         print('Stream error: $error');

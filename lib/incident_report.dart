@@ -298,7 +298,7 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
                       borderRadius: BorderRadius.circular(20),
                       child: Image.file(
                         File(_incidentImage!.path),
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                         width: double.infinity,
                       ),
                     ),
@@ -324,7 +324,7 @@ class _ReportIncidentPageState extends State<ReportIncidentPage> {
                     borderRadius: BorderRadius.circular(20),
                     child: Image.memory(
                       base64Decode(_thirdPartyImage!),
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                       width: double.infinity,
                     ),
                   ),

@@ -30,7 +30,7 @@ class AISWebSocketClient {
           try {
             final aisData = jsonDecode(message);
             _streamController.add(aisData); // Add data to the broadcast stream
-            print(aisData);
+            
           } catch (e) {
             print('Error decoding JSON: $e');
           }

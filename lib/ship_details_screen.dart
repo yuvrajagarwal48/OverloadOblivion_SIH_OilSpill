@@ -1,8 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:spill_sentinel/anomaly_tab.dart';
 import 'package:spill_sentinel/core/theme/app_pallete.dart';
+import 'package:spill_sentinel/features/auth/presentation/widgets/auth_button.dart';
+import 'package:spill_sentinel/report_details_page.dart';
 import 'package:spill_sentinel/utils.dart';
 import 'package:spill_sentinel/widgets/voyage_details_card_widget.dart';
 
@@ -55,7 +60,7 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen>
         children: [
           _buildVesselTab(),
           _buildPositionTab(),
-          _buildAnomalyTab(),
+          AnomalyTab(shipData: shipData)
         ],
       ),
     );
@@ -114,42 +119,6 @@ class _ShipDetailsScreenState extends State<ShipDetailsScreen>
   }
 
   /// Builds the Anomaly tab content
-  Widget _buildAnomalyTab() {
-    final anomalyProbability = shipData['AnomalyProbability'] ?? 0.0;
-    final oilSpillProbability = shipData['OilSpillProbability'] ?? 0.0;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Card(
-          color: Pallete.secondaryColor.withOpacity(0.9),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 6,
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Anomaly Detection',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Pallete.whiteColor,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                _buildProbabilityIndicator(
-                    'Anomaly Probability', anomalyProbability),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   /// Builds the ship details card
   Widget _buildShipDetailsCard() {

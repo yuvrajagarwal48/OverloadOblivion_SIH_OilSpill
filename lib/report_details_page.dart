@@ -46,8 +46,8 @@ class ReportDetailPage extends StatelessWidget {
             _buildKeyValue(
                 'Anomaly Probability', anomalyResult['anomaly_probability']),
             SizedBox(height: 10),
-            _buildKeyValue('Oil Spill Probability',
-                anomalyResult['oil_spill_probability']),
+
+            _buildKeyValue('Oil Spill Area', sarPrediction['Oilspill_area']),
             SizedBox(height: 10),
             _buildImageSection(
                 'Annotated Image', sarPrediction['Annotated_image']),
@@ -70,8 +70,7 @@ class ReportDetailPage extends StatelessWidget {
             _buildKeyValue('Predicted Class', sarPrediction['Predicted Class']),
             _buildImageSection(
                 'Original Image', sarPrediction['Original Image']),
-            _buildImageSection(
-                'LIME Explanation', sarPrediction['LIME Explanation']),
+            _buildImageSection('SAR Mask', sarPrediction['SAR_mask']),
           ],
         ),
       ),
