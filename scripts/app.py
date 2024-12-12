@@ -1,3 +1,5 @@
+# app.py
+
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -11,9 +13,53 @@ from third_party import (
     DetectionResponse
 )
 
+# Import chatbot functionalities
+from chatbot import (
+    similarity_search,
+    keyword_search,
+    bm25_search,
+    fuse_results,
+    generate_response,
+    get_all_documents,
+    initialize_chroma_db,
+    create_or_get_collection,
+    COHERE_API_KEY
+)
+import chatbot
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize the databases on application startup."""
+    global chroma_client, collection, all_docs
+    
+    # Initialize oil spill analysis database
+    chroma_client, collection = initialize_database()
+    
+    # Initialize chatbot database
+    chatbot_chroma_client = initialize_chroma_db("data/chroma_db")
+    chatbot_collection = create_or_get_collection(chatbot_chroma_client)
+    
+    if chatbot_collection.count() == 0:
+        print("Chatbot collection is empty. Processing documents for the first time...")
+        documents = chatbot.load_documents_from_subfolders("Oil_Spill_Docs")
+        print(f"Loaded {len(documents)} documents.")
+        texts = chatbot.split_documents(documents)
+        print(f"Split into {len(texts)} chunks.")
+        chatbot.upsert_documents_with_progress(chatbot_collection, texts)
+        print("Documents have been upserted into ChromaDB.")
+    else:
+        print("Chatbot documents are already upserted. Skipping to query execution.")
+    
+    all_docs = get_all_documents(chatbot_collection)
+    print(f"Total chatbot documents retrieved from ChromaDB: {len(all_docs)}")
+    
+    yield
+
 app = FastAPI(
     title="Comprehensive Oil Spill Management API",
-    description="API for oil spill analysis, detection, and environmental impact assessment"
+    description="API for oil spill analysis, detection, environmental impact assessment, and chatbot queries",
+    lifespan=lifespan
 )
 
 # Add CORS middleware
@@ -25,15 +71,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global variables for database
+# Global variables for databases
 chroma_client = None
 collection = None
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize the database on application startup."""
-    global chroma_client, collection
-    chroma_client, collection = initialize_database()
+all_docs = []
+print(f"Total chatbot documents retrieved from ChromaDB: {len(all_docs)}")
 
 # Oil Spill Analysis Endpoint
 @app.post("/analyze_oil_spill", response_model=OilSpillAnalysisResult)
@@ -59,7 +101,7 @@ async def detect_oil_spill(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/batch-detect/")
-async def batch_detect_oil_spills(files: List[UploadFile] = File(...)):
+async def batch_detect_oil_spills_endpoint(files: List[UploadFile] = File(...)):
     try:
         # Read contents of all uploaded files
         files_contents = [await file.read() for file in files]
@@ -74,6 +116,24 @@ async def batch_detect_oil_spills(files: List[UploadFile] = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
 
+# Chatbot Query Endpoint
+class QueryRequest(BaseModel):
+    query: str
+
+@app.post("/query")
+def handle_query(request: QueryRequest):
+    query = request.query
+    similarity_results = similarity_search(query, collection, k=5)
+    keyword_results = keyword_search(query, all_docs, k=5)
+    bm25_results = bm25_search(query, all_docs, k=5) if all_docs else []
+    
+    if not all_docs:
+        raise HTTPException(status_code=400, detail="No documents available for search.")
+    
+    combined_results = fuse_results(similarity_results, keyword_results, bm25_results)
+    response = generate_response(query, combined_results, COHERE_API_KEY)
+    return {"response": response}
+
 # Root endpoint with API information
 @app.get("/")
 async def root():
@@ -82,12 +142,14 @@ async def root():
         "endpoints": {
             "/analyze_oil_spill": "Perform detailed oil spill environmental impact analysis",
             "/detect/": "Upload a single image for oil spill detection",
-            "/batch-detect/": "Upload multiple images for oil spill detection"
+            "/batch-detect/": "Upload multiple images for oil spill detection",
+            "/query": "Ask questions related to oil spill data and analysis"
         },
         "services": [
             "Environmental Impact Analysis",
             "Oil Spill Image Detection",
-            "Batch Image Processing"
+            "Batch Image Processing",
+            "Chatbot Query Handling"
         ]
     }
 
