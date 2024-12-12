@@ -17,10 +17,10 @@ class _ChatHelp2State extends State<ChatHelp2> {
 
   List<ChatMessage> allMessages = [];
   List<ChatUser> typing = [];
-  final cohereUrl = 'https://api.cohere.ai/v1/generate';
+  final apiUrl = '${Secrets.thirdPartyUrl}/query';
   final header = {
     "Content-Type": "application/json",
-    "Authorization": "Bearer ${Secrets.cohereAPIKey}"
+    //"Authorization": "Bearer ${Secrets.cohereAPIKey}"
   };
 
   getdata(ChatMessage m) async {
@@ -36,21 +36,19 @@ class _ChatHelp2State extends State<ChatHelp2> {
     }
 
     var data = {
-      "model": "command-xlarge-nightly",
-      "prompt": conversationContext,
-      "max_tokens": 200,
-      "temperature": 0.7,
+      "query": conversationContext,
     };
 
     await http
-        .post(Uri.parse(cohereUrl), headers: header, body: jsonEncode(data))
+        .post(Uri.parse(apiUrl), headers: header, body: jsonEncode(data))
         .then((value) {
       if (value.statusCode == 200) {
         var result = jsonDecode(value.body);
-        print(result['generations'][0]['text']);
+        print(result);
+        print(result['response']);
 
         ChatMessage m1 = ChatMessage(
-            text: result['generations'][0]['text'].trim(),
+            text: result['response'].trim(),
             user: bot,
             createdAt: DateTime.now());
         allMessages.insert(0, m1);

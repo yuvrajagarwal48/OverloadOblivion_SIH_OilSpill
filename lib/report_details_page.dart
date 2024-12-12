@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:spill_sentinel/core/utils/format_date.dart';
 
 class ReportDetailPage extends StatelessWidget {
   final Map<String, dynamic> report;
@@ -27,6 +28,7 @@ class ReportDetailPage extends StatelessWidget {
           children: [
             // Ship Information Section
             _buildSectionTitle('Ship Information'),
+            _buildKeyValue('Timestamp of Anomaly', aisData['TIMESTAMP']),
             _buildKeyValue('Name', aisData['NAME']),
             _buildKeyValue('MMSI', aisData['MMSI']),
             _buildKeyValue('IMO', aisData['IMO']),
@@ -70,6 +72,8 @@ class ReportDetailPage extends StatelessWidget {
             _buildKeyValue('Predicted Class', sarPrediction['Predicted Class']),
             _buildImageSection(
                 'Original Image', sarPrediction['Original Image']),
+            //_buildImageSection(
+            //  'Preprocessed Image', sarPrediction['Preprocessed_image']),
             _buildImageSection('SAR Mask', sarPrediction['SAR_mask']),
           ],
         ),
