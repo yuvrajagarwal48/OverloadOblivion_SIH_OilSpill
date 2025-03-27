@@ -34,7 +34,7 @@ class _ReportsGridPageState extends State<ReportsGridPage> {
 
     try {
       Query query = FirebaseFirestore.instance
-          .collection('reports')
+          .collection('reports2')
           .orderBy('timestamp', descending: true)
           .limit(_pageSize);
 

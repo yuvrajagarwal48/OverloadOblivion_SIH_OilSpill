@@ -85,12 +85,14 @@ class _AppInitializerState extends State<AppInitializer> {
           if (state is AuthLoading) {
             return const Loader();
           } else if (state is AuthUserLoggedIn) {
-            print(state);
-            return const VerificationPage();
-          } else if (state is AuthEmailVerified) {
-            return const LayoutPage();
+            if (state.user.emailVerified) {
+              
+              return const LayoutPage();
+            } else {
+              return const VerificationPage();
+            }
           } else {
-            return const LandingPage();
+            return const LayoutPage();
           }
         },
       ),

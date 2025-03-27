@@ -6,6 +6,7 @@ class User {
   final String middleName;
   final String lastName;
   final bool emailVerified;
+  
 
   User({
     required this.emailVerified,
